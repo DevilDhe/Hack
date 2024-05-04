@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Log In</h2>
+    <form id="loginForm">
+      <input type="email" id="email" name="email" placeholder="Email" required><br>
+      <input type="password" id="password" name="password" placeholder="Password" required><br>
+      <button type="submit">Log In</button>
+    </form>
+    <div class="error-message" id="errorMessage"></div>
+    <div class="auth-link">
+      Don't have an account? <a href="index.html">Sign Up</a>
+    </div>
+  </div>
+
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js"></script>
+  <!-- Firebase Auth (the Firebase component for authentication) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-auth.js"></script>
+  <script type="module">
+
+    // Import the Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-auth.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4pnER56AqP2x3__HXMcbCsBJf9_zuBWk",
+      authDomain: "saksham-website.firebaseapp.com",
+      projectId: "saksham-website",
+      storageBucket: "saksham-website.appspot.com",
+      messagingSenderId: "152838293902",
+      appId: "1:152838293902:web:8f476f939dd79c06b3bcdf",
+      measurementId: "G-Y35JZ0C53R"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      // Validate the email address
+      if (!isValidEmail(email)) {
+        errorMessage.innerText = 'Invalid email address';
+        return;
+      }
+
+      // Log in the user
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          if (user.emailVerified) {
+            window.location.href = 'homepage.html';
+          } else {
+            errorMessage.innerText = 'Please verify your email address.';
+          }
+        })
+        .catch((error) => {
+          errorMessage.innerText = error.message;
+        });
+    });
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+  </script>
+</body>
+</html>
