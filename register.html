@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up</title>
+<style>
+    
+@import url('https://fonts.googleapis.com/css?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+        font-family:'Poppins',sans-serif;
+
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+        background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCnZpVSE5u6Z6ufWoNw3NFA0XMGM8HqVRL5rGk3EBUFg&s'); /* Add your background image URL */
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .container {
+        background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+        padding: 100px;
+        
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        width: 80%; /* Adjust width as needed */
+        max-width: 500px; /* Max width to maintain readability */
+        text-align: center; /* Center-align the content */
+    }
+    h2 {
+        margin-bottom: 20px; /* Add space between heading and buttons */
+    }
+    .btn-container {
+        display: flex;
+        flex-direction: column; /* Align buttons vertically */
+        align-items: center; /* Center-align buttons horizontally */
+    }
+    .btn {
+        margin: 10px 0; /* Add space between buttons */
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: #fff;
+        font-size: 16px;
+        text-transform: uppercase;
+    }
+    .btn:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h2>Sign Up</h2>
+        <div class="btn-container">
+            <button class="btn" onclick="location.href='#'">Register</button>
+            <button class="btn" onclick="location.href='#'">Login</button>
+        </div>
+    </div>
+</body>
+</html>

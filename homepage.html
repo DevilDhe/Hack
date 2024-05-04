@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mapbox Example</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
+    <!-- Add Mapbox Directions plugin script -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-traffic/v0.1.0/mapbox-gl-traffic.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-traffic/v0.1.0/mapbox-gl-traffic.css' rel='stylesheet' />
+    <style>
+        
+@import url('https://fonts.googleapis.com/css?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+        body {
+            font-family:'Poppins',sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        #routeForm {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #routeForm label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        #routeForm input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        #routeForm select {
+            width: calc(100% - 22px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        #routeForm button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        #routeForm button:hover {
+            background-color: #45a049;
+        }
+
+        .suggestions {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+            border-radius: 3px;
+        }
+
+        .suggestions li {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .suggestions li:hover {
+            background-color: #e9e9e9;
+        }
+
+        #directionsPanel {
+            padding: 10px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #directionsPanel p {
+            margin: 0;
+            padding: 0;
+        }
+
+        #sideMenu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #sideMenu h3 {
+            margin-top: 0;
+        }
+
+        canvas {
+            max-width: 100%;
+        }
+
+        .facility {
+            margin-bottom: 10px;
+        }
+
+        #nearbyPlaces {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        #nearbyPlaces h3 {
+            margin-top: 0;
+        }
+
+        #nearbyPlaces .facility {
+            margin-bottom: 5px;
+        }
+
+        .marker-popup {
+            max-width: 200px;
+        }
+
+        .facility-info {
+            margin-bottom: 10px;
+        }
+
+        .facility-info p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id='map'></div>
+
+    <div id="sideMenu">
+        <h3>Map Type</h3>
+        <select id="mapType">
+            <option value="streets-v11">Streets</option>
+            <option value="satellite-v9">Satellite</option>
+            <option value="satellite-streets-v11">Satellite with Streets</option>
+            <option value="outdoors-v11">Outdoors</option>
+            <option value="light-v10">Light</option>
+            <option value="dark-v10">Dark</option>
+            <option value="traffic-day-v2">Traffic Day</option>
+            <option value="traffic-night-v2">Traffic Night</option>
+        </select>
+
+        <h3>Facilities Filter</h3>
+        <div>
+            <input type="checkbox" id="wheelchair" name="wheelchair">
+            <label for="wheelchair">Wheelchair Accessibility</label><br>
+            <input type="checkbox" id="restrooms" name="restrooms">
+            <label for="restrooms">Accessible Restrooms</label><br>
+            <input type="checkbox" id="visual_impairment" name="visual_impairment">
+            <label for="visual_impairment">Visual Impairment</label><br>
+            <input type="checkbox" id="hearing_impairment" name="hearing_impairment">
+            <label for="hearing_impairment">Hearing Impairment</label><br>
+            <input type="checkbox" id="mobility_impairment" name="mobility_impairment">
+            <label for="mobility_impairment">Mobility Impairment</label><br>
+            <input type="checkbox" id="cognitive_disabilities" name="cognitive_disabilities">
+            <label for="cognitive_disabilities">Cognitive Disabilities</label><br>
+        
+            <input type="checkbox" id="mental_health_conditions" name="mental_health_conditions">
+            <label for="mental_health_conditions">Mental Health Conditions</label><br>
+            <input type="checkbox" id="chronic_illnesses" name="chronic_illnesses">
+            <label for="chronic_illnesses">Chronic Illnesses</label><br>
+        </div>
+
+        <div id="facilitiesList"></div>
+    </div>
+
+    <form id="routeForm">
+        <label for="start">Starting Point:</label>
+        <input type="text" id="start" name="start" placeholder="Enter starting point" required>
+        <div id="startSuggestions" class="suggestions"></div>
+
+        <label for="destination">Destination:</label>
+        <input type="text" id="destination" name="destination" placeholder="Enter destination" required>
+        <div id="destinationSuggestions" class="suggestions"></div>
+
+        <label for="travelMode">Travel Mode:</label>
+        <select id="travelMode" name="travelMode">
+            <option value="driving">Driving</option>
+            <option value="walking">Walking</option>
+            <option value="cycling">Cycling</option>
+        </select>
+
+        <button type="button" onclick="getDirection()">Get Direction</button>
+
+        <div id="directionsPanel"></div>
+
+        <div id="nearbyPlaces">
+            <h3>Nearby Places</h3>
+            <div id="nearbyFacilities"></div>
+        </div>
+    </form>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZGhlZXJhanNpbmdoIiwiYSI6ImNsdnFkOWFhdzA4dG0ya3F6Z3Y1Y3RoejUifQ.T3YjDBI1BvEwIOSaVdvQgg';
+
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [73.8567, 18.5204], // Default center location
+            zoom: 10
+        });
+
+        var startMarker;
+        var destinationMarker;
+        var directionsRenderer;
+        var trafficLayer;
+        var crowdedLayer;
+        var trafficChart;
+
+        function updateRoute(start, destination, travelMode) {
+            if (directionsRenderer) {
+                directionsRenderer.removeRoutes();
+            }
+            directionsRenderer = new MapboxDirections({
+                accessToken: mapboxgl.accessToken,
+                unit: 'metric',
+                profile: 'mapbox/' + travelMode,
+                alternatives: true,
+                geometries: 'polyline',
+                steps: true,
+                controls: {
+                    inputs: false,
+                    instructions: false,
+                    profileSwitcher: false
+                }
+            });
+
+            directionsRenderer.setOrigin(start);
+            directionsRenderer.setDestination(destination);
+            map.addControl(directionsRenderer, 'top-left');
+        }
+
+        function updateMap(start, destination, travelMode) {
+            updateRoute(start, destination, travelMode);
+
+            if (startMarker) {
+                startMarker.remove();
+            }
+
+            if (destinationMarker) {
+                destinationMarker.remove();
+            }
+
+            startMarker = new mapboxgl.Marker()
+                .setLngLat(start)
+                .addTo(map);
+
+            destinationMarker = new mapboxgl.Marker()
+                .setLngLat(destination)
+                .addTo(map);
+
+            map.flyTo({
+                center: start,
+                zoom: 12
+            });
+        }
+
+        function getDirection() {
+            var start = document.getElementById('start').value;
+            var destination = document.getElementById('destination').value;
+            var travelMode = document.getElementById('travelMode').value;
+
+            var startCoordinates = start.split(',').map(Number);
+            var destinationCoordinates = destination.split(',').map(Number);
+
+            updateMap(startCoordinates, destinationCoordinates, travelMode);
+
+            var directionsPanel = document.getElementById('directionsPanel');
+            directionsPanel.innerHTML = '';
+
+            var routeSummary = document.createElement('p');
+            routeSummary.textContent = 'Distance: Calculating...';
+
+            directionsPanel.appendChild(routeSummary);
+
+            fetch(`https://api.mapbox.com/directions/v5/mapbox/${travelMode}/${startCoordinates[0]},${startCoordinates[1]};${destinationCoordinates[0]},${destinationCoordinates[1]}?geometries=polyline&overview=full&access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    var distance = (data.routes[0].distance / 1000).toFixed(2);
+                    var duration = Math.ceil(data.routes[0].duration / 60);
+                    routeSummary.textContent = `Distance: ${distance} km, Duration: ${duration} min`;
+
+                    var steps = document.createElement('ol');
+                    data.routes[0].legs[0].steps.forEach(step => {
+                        var li = document.createElement('li');
+                        li.textContent = step.maneuver.instruction;
+                        steps.appendChild(li);
+                    });
+
+                    directionsPanel.appendChild(steps);
+                })
+                .catch(error => console.error(error));
+
+            // Show nearby places with facilities
+            showNearbyPlaces(startCoordinates);
+        }
+
+        function showNearbyPlaces(coordinates) {
+            var baseUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places/';
+            var types = ['hospital', 'clinic', 'pharmacy', 'doctors', 'social_facility', 'toilets'];
+
+            var facilities = {
+                'hospital': 'Hospital',
+                'clinic': 'Clinic',
+                'pharmacy': 'Pharmacy',
+                'doctors': 'Doctors',
+                'social_facility': 'Social Facility',
+                'toilets': 'Toilets'
+            };
+
+            var nearbyFacilities = document.getElementById('nearbyFacilities');
+            nearbyFacilities.innerHTML = '';
+
+            types.forEach(type => {
+                fetch(`${baseUrl}${type}.json?proximity=${coordinates[0]},${coordinates[1]}&access_token=${mapboxgl.accessToken}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        var features = data.features;
+                        if (features.length > 0) {
+                            features.forEach(feature => {
+                                var name = feature.properties.name || feature.text;
+                                var category = facilities[type];
+                                var address = feature.properties.address;
+                                var details = `<div class="facility"><strong>${name}</strong><br>${category}<br>${address}</div>`;
+                                nearbyFacilities.innerHTML += details;
+
+                                // Add marker on the map
+                                addMarker(feature.geometry.coordinates, name, category, address);
+                            });
+                        }
+                    })
+                    .catch(error => console.error(error));
+            });
+        }
+
+        function addMarker(coordinates, name, category, address) {
+            var popupContent = `
+                <div class="marker-popup">
+                    <h3>${name}</h3>
+                    <div class="facility-info">
+                        <p><strong>Category:</strong> ${category}</p>
+                        <p><strong>Address:</strong> ${address}</p>
+                    </div>
+                </div>`;
+
+            new mapboxgl.Marker()
+                .setLngLat(coordinates)
+                .setPopup(new mapboxgl.Popup().setHTML(popupContent))
+                .addTo(map);
+        }
+
+        function filterFacilities() {
+            var diabetes = document.getElementById("diabetes").checked;
+            var wheelchair = document.getElementById("wheelchair").checked;
+            var restrooms = document.getElementById("restrooms").checked;
+            var visual_impairment = document.getElementById("visual_impairment").checked;
+            var hearing_impairment = document.getElementById("hearing_impairment").checked;
+            var mobility_impairment = document.getElementById("mobility_impairment").checked;
+            var cognitive_disabilities = document.getElementById("cognitive_disabilities").checked;
+            var allergies = document.getElementById("allergies").checked;
+            var mental_health_conditions = document.getElementById("mental_health_conditions").checked;
+            var chronic_illnesses = document.getElementById("chronic_illnesses").checked;
+
+            var facilities = {
+                'diabetes': diabetes,
+                'wheelchair': wheelchair,
+                'restrooms': restrooms,
+                'visual_impairment': visual_impairment,
+                'hearing_impairment': hearing_impairment,
+                'mobility_impairment': mobility_impairment,
+                'cognitive_disabilities': cognitive_disabilities,
+                'allergies': allergies,
+                'mental_health_conditions': mental_health_conditions,
+                'chronic_illnesses': chronic_illnesses
+            };
+
+            var coordinates = map.getCenter();
+
+            for (var facility in facilities) {
+                if (facilities[facility]) {
+                    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${facility}.json?proximity=${coordinates[0]},${coordinates[1]}&access_token=${mapboxgl.accessToken}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            var features = data.features;
+                            features.forEach(feature => {
+                                var name = feature.properties.name || feature.text;
+                                var category = facility.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+                                var address = feature.properties.address;
+                                var details = `<strong>${name}</strong><br>${category}<br>${address}`;
+                                addMarker(feature.geometry.coordinates, name, category, address);
+                            });
+                        })
+                        .catch(error => console.error(error));
+                }
+            }
+        }
+
+
+        function getSuggestions(input, suggestionsList, inputField) {
+            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${input}.json?access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsList.innerHTML = '';
+                    data.features.forEach(feature => {
+                        var li = document.createElement('li');
+                        li.textContent = feature.place_name;
+                        li.onclick = function () {
+                            inputField.value = feature.center.join(',');
+                            suggestionsList.innerHTML = '';
+                        };
+                        suggestionsList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error(error));
+        }
+
+        var startInput = document.getElementById('start');
+        var destinationInput = document.getElementById('destination');
+        var startSuggestions = document.getElementById('startSuggestions');
+        var destinationSuggestions = document.getElementById('destinationSuggestions');
+
+        startInput.addEventListener('input', function () {
+            var input = startInput.value.trim();
+            if (input.length > 2) {
+                getSuggestions(input, startSuggestions, startInput);
+            } else {
+                startSuggestions.innerHTML = '';
+            }
+        });
+
+        destinationInput.addEventListener('input', function () {
+            var input = destinationInput.value.trim();
+            if (input.length > 2) {
+                getSuggestions(input, destinationSuggestions, destinationInput);
+            } else {
+                destinationSuggestions.innerHTML = '';
+            }
+        });
+
+        // Change map style
+        document.getElementById('mapType').addEventListener('change', function () {
+            var selectedStyle = this.value;
+            map.setStyle('mapbox://styles/mapbox/' + selectedStyle);
+        });
+    </script>
+
+</body>
+
+</html>

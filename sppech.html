@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Recognition Form</title>
+  <style>
+    
+@import url('https://fonts.googleapis.com/css?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family:'Poppins',sans-serif;
+    }
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      padding: 20px;
+      background-color: #f4f4f4;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    input[type="submit"] {
+      width: 100%;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+    .menu {
+      margin-bottom: 10px;
+    }
+    .menu label {
+      font-weight: bold;
+    }
+    .menu select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Voice Recognition Form</h1>
+    <p id="welcomeMessage">Please allow microphone and screen access to use this website.</p>
+    <form id="voiceForm">
+      <div class="menu">
+        <label for="field">Select a field:</label>
+        <select id="field">
+          <option value="name">Name</option>
+          <option value="email">Email</option>
+        </select>
+      </div>
+      <label for="value">Speak to enter value:</label>
+      <input type="text" id="value" name="value" placeholder="Speak to enter value...">
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+
+  <script>
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      const fieldSelect = document.getElementById('field');
+      const valueInput = document.getElementById('value');
+      const welcomeMessage = document.getElementById('welcomeMessage');
+      let attempts = 0;
+
+      function speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function askForPermission() {
+        speak("To use this website, you need to allow microphone and screen access. Click 'OK' to grant access.");
+        const permission = confirm("To use this website, you need to allow microphone and screen access. Click 'OK' to grant access.");
+        if (permission) {
+          recognition.start();
+        } else {
+          alert("Microphone and screen access are required to use this website.");
+          window.location.reload();
+        }
+      }
+
+      function readInstructions() {
+        speak('Welcome to the website. Please select a field and speak to enter the value.');
+        speak('You can select either "name" or "email" as the field.');
+        speak('Once you have spoken, please confirm by saying "yes" or "no".');
+        speak('You have 5 seconds to confirm. If not, please speak again.');
+      }
+
+      function startRecognition() {
+        attempts = 0;
+      }
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        const selectedField = fieldSelect.value;
+        
+        if (transcript.includes('name')) {
+          fieldSelect.value = 'name';
+          speak('Please speak your name.');
+        } else if (transcript.includes('email')) {
+          fieldSelect.value = 'email';
+          speak('Please speak your email address.');
+        } else if (transcript.includes('yes')) {
+          document.getElementById('voiceForm').submit();
+        } else if (transcript.includes('no')) {
+          speak('Please try again.');
+          if (++attempts < 3) {
+            recognition.start();
+          } else {
+            speak('Please spell it out.');
+            setTimeout(() => {
+              speak('You can start spelling now.');
+            }, 2000);
+          }
+        } else {
+          valueInput.value = transcript;
+          speak('Value entered: ' + transcript + '. Please confirm.');
+          setTimeout(() => {
+            speak("Did you say: " + transcript + "?");
+          }, 5000); // 5 seconds timeout
+        }
+      };
+
+      recognition.onend = function() {
+        if (attempts >= 3) {
+          setTimeout(() => {
+            speak('Please confirm by saying "yes" or "no".');
+            recognition.start();
+          }, 2000);
+        } else {
+          recognition.start();
+        }
+      };
+
+      document.getElementById('voiceForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const selectedField = fieldSelect.options[fieldSelect.selectedIndex].text;
+        speak('Value entered for ' + selectedField + ': ' + valueInput.value + '. Please proceed to the next field.');
+        alert('Value entered for ' + selectedField + ': ' + valueInput.value);
+        valueInput.value = '';
+        fieldSelect.selectedIndex = 0;
+        recognition.start();
+      });
+
+      window.addEventListener('load', function() {
+        askForPermission();
+        readInstructions();
+      });
+
+    } else {
+      console.error('Speech recognition not supported');
+    }
+  </script>
+</body>
+</html>

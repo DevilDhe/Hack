@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review Page</title>
+  <style>
+
+@import url('https://fonts.googleapis.com/css?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family:'Poppins',sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    button[type="submit"] {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #45a049;
+    }
+
+    #reviewList {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #reviewList li {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    #reviewList li strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Post a Review</h1>
+  <form id="reviewForm">
+    <label for="userName">Your Name:</label>
+    <input type="text" id="userName" name="userName" required><br><br>
+    <label for="userReview">Your Review:</label><br>
+    <textarea id="userReview" name="userReview" rows="4" cols="50" required></textarea><br><br>
+    <button type="submit">Submit Review</button>
+  </form>
+
+  <h1>Recent Reviews</h1>
+  <ul id="reviewList">
+    <!-- Reviews will be dynamically added here -->
+  </ul>
+
+  <!-- Firebase SDK -->
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNbCJL6RniOjkLqsl10J8p9b-pe-N9Clw",
+    authDomain: "disability-4922a.firebaseapp.com",
+    projectId: "disability-4922a",
+    storageBucket: "disability-4922a.appspot.com",
+    messagingSenderId: "329520413981",
+    appId: "1:329520413981:web:f63bf1f505dd5085c075f4",
+    measurementId: "G-MGPL4YMHX1"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const reviewsRef = collection(db, 'reviews');
+
+  // Function to handle form submission
+  document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const userName = document.getElementById('userName').value;
+    const userReview = document.getElementById('userReview').value;
+
+    // Add new review to the database
+    try {
+      await addDoc(reviewsRef, {
+        name: userName,
+        review: userReview
+      });
+      // Clear form fields
+      document.getElementById('userName').value = '';
+      document.getElementById('userReview').value = '';
+      console.log('Review submitted successfully.');
+    } catch (error) {
+      console.error('Error adding review: ', error);
+    }
+  });
+
+  // Function to fetch and display reviews
+  async function fetchAndDisplayReviews() {
+    const querySnapshot = await getDocs(reviewsRef);
+    querySnapshot.forEach((doc) => {
+      const review = doc.data();
+      const reviewItem = document.createElement('li');
+      reviewItem.innerHTML = `<strong>${review.name}:</strong> ${review.review}`;
+      document.getElementById('reviewList').appendChild(reviewItem);
+    });
+  }
+
+  // Initial fetch and display of reviews
+  fetchAndDisplayReviews();
+
+  // Real-time update listener for new reviews
+  reviewsRef.onSnapshot(() => {
+    document.getElementById('reviewList').innerHTML = '';
+    fetchAndDisplayReviews();
+  });
+</script>
+</body>
+</html>
